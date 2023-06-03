@@ -1,0 +1,43 @@
+pipeline{
+    agent{
+        label 'node label'
+    }
+
+    environment{
+	ENV_VARIABLE_A = 'va
+    }
+    stages{
+	stage('id #1'){
+	    agent{
+		label 'node label 1
+	    }
+
+	    environment{}
+	    steps{
+		//DSL statements
+	    }
+	}
+	stage('id #2'){
+	    agent{
+		label 'node label 2
+	    }
+	    environment{}
+	    steps{
+	        //DSL statements
+	    }
+	}
+    }
+
+
+    post {
+	always {
+	    //DSL statements
+	}
+	success {
+	    //DSL statements
+	}
+	failure {
+            //DSL statements
+	}
+    }
+}
