@@ -1,12 +1,9 @@
 def imageName = 'proxypepe/demo'
 
-node('workers'){
+node('master'){
   stage('Checkout') {
-    steps {
-      git branch: 'develop',
-        credentialsId: 'github-ssh',
-        url: 'git@github.com:.git'
-    }
+    git branch: 'main',
+      url: ''
   }
     // stage('Unit Tests'){
   //   def imageTest = docker.build("${imageName}-test", 
@@ -17,26 +14,18 @@ node('workers'){
   //   // sh "docker run --rm -v $PWD/reports:/app/reports ${imageName}-test"
   //   // junit "$PWD/reports/*.xml"
   // }
-  def imageTest= docker.build("${imageName}-test", "-f Dockerfile.test .")
+  def imageTest = docker.build("${imageName}-test", "-f Dockerfile.test .")
   stage('Pre-integration Tests'){
     parallel(
       'Quality Tests': {
-          imageTest.inside{
-            sh 'pylint .'
-        }
+          sh "docker run --rm ${imageName}-test pylint ."
       },
        'Unit Tests': {
-          imageTest.inside{
-            sh 'pytest'
-          }
+          sh "docker run --rm ${imageName}-test pytest"
         },
       'Security Tests': {
-        imageTest.inside(){
-          sh 'safety check -r main.py'
-        }
+        sh "docker run --rm ${imageName}-test safety check -r main.py"
       }
     )
   }
-
-
 }
