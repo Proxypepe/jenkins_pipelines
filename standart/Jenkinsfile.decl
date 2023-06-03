@@ -1,0 +1,57 @@
+def imageName = 'proxypepe/demo'
+
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build test image') {
+            steps {
+                script {
+                    docker.build("${imageName}-test", "-f Dockerfile.test .")
+                }
+            }
+        }
+
+        stage('Pre-integration Tests'){
+            parallel {
+                stage('Quality Tests') {
+                    steps {
+                        sh "docker run --rm ${imageName}-test pylint ."
+                    }
+                    post {
+                        always {
+                            sh 'echo some msg'
+                        }
+                    }
+                }
+                stage('Unit Tests') {
+                    steps {
+                        sh "docker run --rm ${imageName}-test pytest"
+                    }
+                }
+                stage('Security Tests') {
+                    steps {
+                        sh "docker run --rm ${imageName}-test safety check -r main.py"
+                    }
+                }
+            }
+        }
+    }
+    post {
+		always {
+			echo 'Always section post'
+		}
+		success {
+			echo 'success section post'
+		}
+		failure {
+			echo 'failure section post'
+		}
+    }
+}
