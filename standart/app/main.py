@@ -32,3 +32,8 @@ class MovieJsonLoader:
         """
         assert index > -1
         return self.movies[index]['id']
+
+
+if __name__ == "__main__":
+    movies_obj = MovieJsonLoader('movies.json')
+    print(movies_obj.get_title(0))
