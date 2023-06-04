@@ -40,6 +40,11 @@ node('master'){
     docker.build("${imageName}", "-f Dockerfile .")
   }
 
+
+  stage ('Image security test') {
+    sh "docker run "
+  }
+
   stage('Push') {
     docker.withRegistry(registry) {
       // docker.image(imageName).push(env.BUILD_ID)

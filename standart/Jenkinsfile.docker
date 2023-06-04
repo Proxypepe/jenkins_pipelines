@@ -1,0 +1,61 @@
+pipeline {
+    agent {
+        docker { 
+            image 'python:3.10.11-slim-bullseye'
+        }
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install req.txt') {
+            steps {
+                withEnv(["HOME=${env.WORKSPACE}"]) {
+                    sh "pip install -r req.txt --user"
+                }
+            }
+        }
+
+        stage('Pre-integration Tests'){
+            parallel {
+                stage('Quality Tests') {
+                    steps {
+                        withEnv(["HOME=${env.WORKSPACE}"]) {
+                            sh "python3 -m pylint app"
+                        }
+                    }
+                    post {
+                        always {
+                            sh 'echo some msg'
+                        }
+                    }
+                }
+                stage('Unit Tests') {
+                    steps {
+                        withEnv(["HOME=${env.WORKSPACE}"]) {
+                            dir('app') {
+                                sh "python3 -m pytest"
+                            }
+                        }
+                    }
+                }
+                stage('Security Tests') {
+                    steps {
+                        withEnv(["HOME=${env.WORKSPACE}"]) {
+                            sh "python3 -m safety check -r app/main.py"
+                        }
+                    }
+                }
+            }
+        }
+    }
+    post {
+        cleanup {
+            cleanWs()
+        }
+    }
+}
